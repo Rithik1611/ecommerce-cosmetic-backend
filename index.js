@@ -33,19 +33,23 @@ app.get('/search', async (req, res) => {
     return res.status(404).json({ error: 'No products found for this color' });
   }
 
-  const options = {};
+  const category = {};
   products.forEach(p => {
-    if (!options[p.type]) options[p.type] = [];
-    options[p.type].push({
+    if (!category[p.category]) category[p.category] = [];
+    category[p.category].push({
       _id: p._id,
       brand: p.brand,
-      price: p.price
+      price: p.price,
+      imageUrl: p.imageUrl,
+      affiliateUrl: p.affiliateUrl,
+      title: p.title,
+      asin: p.asin
     });
   });
 
   res.json({
     color,
-    options
+    category
   });
 });
 
@@ -60,24 +64,28 @@ app.post('/combo', async (req, res) => {
   let total = 0;
   let validatedCombo = {};
 
-  for (const [type, productId] of Object.entries(selected)) {
+  for (const [category, productId] of Object.entries(selected)) {
     const product = await Product.findById(productId);
 
     if (!product) {
-      return res.status(400).json({ error: `Invalid product ID for ${type}` });
+      return res.status(400).json({ error: `Invalid product ID for ${category}` });
     }
 
-    if (product.type !== type) {
-      return res.status(400).json({ error: `Product type mismatch for ${type}` });
+    if (product.category !== category) {
+      return res.status(400).json({ error: `Product category mismatch for ${category}` });
     }
 
     if (product.color !== color.toLowerCase()) {
-      return res.status(400).json({ error: `Color mismatch for ${type}` });
+      return res.status(400).json({ error: `Color mismatch for ${category}` });
     }
 
-    validatedCombo[type] = {
+    validatedCombo[category] = {
       brand: product.brand,
-      price: product.price
+      price: product.price,
+      imageUrl: product.imageUrl,
+      affiliateUrl: product.affiliateUrl,
+      title: product.title,
+      asin: product.asin
     };
 
     total += product.price;
